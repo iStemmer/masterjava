@@ -74,7 +74,7 @@ public class FileUploadServlet extends HttpServlet {
             if (content.trim().startsWith("filename")) {
                 String fileName = content.substring(
                         content.indexOf('=') + 1).trim().replace("\"", "");
-                return fileName.substring(fileName.lastIndexOf("\""));
+                return fileName.substring(fileName.lastIndexOf("\\") + 1);
             }
         }
         return null;
