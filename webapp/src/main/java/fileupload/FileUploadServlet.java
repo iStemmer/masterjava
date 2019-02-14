@@ -14,9 +14,7 @@ import java.util.logging.Logger;
 @WebServlet(name = "FileUploadServlet", urlPatterns = {"/upload"})
 @MultipartConfig
 public class FileUploadServlet extends HttpServlet {
-    private final static Logger LOGGER =
-            Logger.getLogger(FileUploadServlet.class.getCanonicalName());
-
+    private final static Logger LOGGER = Logger.getLogger(FileUploadServlet.class.getCanonicalName());
 
     protected void processRequest(HttpServletRequest request,
                                   HttpServletResponse response)
@@ -33,10 +31,8 @@ public class FileUploadServlet extends HttpServlet {
         final PrintWriter writer = response.getWriter();
 
         try {
-            out = new FileOutputStream(new File(path + File.separator
-                    + fileName));
+            out = new FileOutputStream(new File(path + File.separator + fileName));
             filecontent = filePart.getInputStream();
-
             int read = 0;
             final byte[] bytes = new byte[1024];
 
