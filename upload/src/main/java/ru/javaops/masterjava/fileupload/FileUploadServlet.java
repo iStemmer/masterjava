@@ -1,5 +1,13 @@
 package ru.javaops.masterjava.fileupload;
 
+import com.google.common.base.Splitter;
+import ru.javaops.masterjava.xml.schema.ObjectFactory;
+import ru.javaops.masterjava.xml.schema.Payload;
+import ru.javaops.masterjava.xml.schema.User;
+import ru.javaops.masterjava.xml.util.JaxbParser;
+import ru.javaops.masterjava.xml.util.Schemas;
+import ru.javaops.masterjava.xml.util.StaxStreamProcessor;
+
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.annotation.WebServlet;
@@ -7,14 +15,21 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
+import javax.xml.bind.JAXBException;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.events.XMLEvent;
 import java.io.*;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static com.google.common.base.Strings.nullToEmpty;
 
 @WebServlet(name = "FileUploadServlet", urlPatterns = {"/upload"})
 @MultipartConfig
 public class FileUploadServlet extends HttpServlet {
     private final static Logger LOGGER = Logger.getLogger(FileUploadServlet.class.getCanonicalName());
+    private static final Comparator<User> USER_COMPARATOR = Comparator.comparing(User::getValue).thenComparing(User::getEmail);
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -31,21 +46,35 @@ public class FileUploadServlet extends HttpServlet {
         final Part filePart = request.getPart("file");
         final String fileName = getFileName(filePart);
 
-        OutputStream out = null;
-        InputStream filecontent = null;
+        //InputStream filecontent = null;
         final PrintWriter writer = response.getWriter();
 
-        try {
-            out = new FileOutputStream(new File(path + File.separator + fileName));
-            filecontent = filePart.getInputStream();
-            int read = 0;
-            final byte[] bytes = new byte[1024];
+        try (InputStream filecontent = filePart.getInputStream()) {
+            StaxStreamProcessor processor = new StaxStreamProcessor(filecontent);
+            final Set<String> groupNames = new HashSet<>();
 
-            while ((read = filecontent.read(bytes)) != -1) {
-                out.write(bytes, 0, read);
+            // Users loop
+            Set<User> users = new TreeSet<>(USER_COMPARATOR);
+
+            JaxbParser parser = new JaxbParser(User.class);
+            while (processor.doUntil(XMLEvent.START_ELEMENT, "User")) {
+                String groupRefs = processor.getAttribute("groupRefs");
+                if (!Collections.disjoint(groupNames, Splitter.on(' ').splitToList(nullToEmpty(groupRefs)))) {
+                    User user = parser.unmarshal(processor.getReader(), User.class);
+                    users.add(user);
+                }
             }
-            writer.println("New file " + fileName + " created at " + path);
-            LOGGER.log(Level.INFO, "File{0}being uploaded to {1}", new Object[]{fileName, path});
+            //print users, ho ho ho ho ho(!!!)
+            writer.println("<table>");
+            users.forEach(user -> {
+                writer.println("<tr>");
+                writer.println("<td>" + user.getValue() + "</td>");
+                writer.println("<td>" + user.getEmail() + "</td>");
+                writer.println("<td>" + user.getFlag() + "</td>");
+                writer.println("</tr>");
+
+            });
+            writer.println("</table");
         } catch (FileNotFoundException fne) {
             writer.println("You either did not specify a file to upload or are "
                     + "trying to upload a file to a protected or nonexistent "
@@ -54,13 +83,12 @@ public class FileUploadServlet extends HttpServlet {
 
             LOGGER.log(Level.SEVERE, "Problems during file upload. Error: {0}",
                     new Object[]{fne.getMessage()});
+        } catch (XMLStreamException xmlException) {
+            LOGGER.log(Level.SEVERE, "Problems while XML file parsing");
+            writer.println("Problems while xml file parsing");
+        } catch (JAXBException e) {
+            LOGGER.log(Level.SEVERE, "Problems during file parsing");
         } finally {
-            if (out != null) {
-                out.close();
-            }
-            if (filecontent != null) {
-                filecontent.close();
-            }
             if (writer != null) {
                 writer.close();
             }
