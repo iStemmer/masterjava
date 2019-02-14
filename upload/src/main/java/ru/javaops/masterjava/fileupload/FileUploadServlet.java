@@ -16,6 +16,11 @@ import java.util.logging.Logger;
 public class FileUploadServlet extends HttpServlet {
     private final static Logger LOGGER = Logger.getLogger(FileUploadServlet.class.getCanonicalName());
 
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        processRequest(req, resp);
+    }
+
     protected void processRequest(HttpServletRequest request,
                                   HttpServletResponse response)
             throws ServletException, IOException {
@@ -67,8 +72,9 @@ public class FileUploadServlet extends HttpServlet {
         LOGGER.log(Level.INFO, "Part Header = {0}", partHeader);
         for (String content : part.getHeader("content-disposition").split(";")) {
             if (content.trim().startsWith("filename")) {
-                return content.substring(
+                String fileName = content.substring(
                         content.indexOf('=') + 1).trim().replace("\"", "");
+                return fileName.substring(fileName.lastIndexOf("\""));
             }
         }
         return null;
