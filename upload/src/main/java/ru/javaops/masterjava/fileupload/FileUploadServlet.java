@@ -1,11 +1,8 @@
 package ru.javaops.masterjava.fileupload;
 
 import com.google.common.base.Splitter;
-import ru.javaops.masterjava.xml.schema.ObjectFactory;
-import ru.javaops.masterjava.xml.schema.Payload;
 import ru.javaops.masterjava.xml.schema.User;
 import ru.javaops.masterjava.xml.util.JaxbParser;
-import ru.javaops.masterjava.xml.util.Schemas;
 import ru.javaops.masterjava.xml.util.StaxStreamProcessor;
 
 import javax.servlet.ServletException;
@@ -18,7 +15,10 @@ import javax.servlet.http.Part;
 import javax.xml.bind.JAXBException;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.XMLEvent;
-import java.io.*;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintWriter;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -64,6 +64,7 @@ public class FileUploadServlet extends HttpServlet {
                     users.add(user);
                 }
             }
+            System.out.println("test2");
             //print users, ho ho ho ho ho(!!!)
             writer.println("<table>");
             users.forEach(user -> {
@@ -72,6 +73,7 @@ public class FileUploadServlet extends HttpServlet {
                 writer.println("<td>" + user.getEmail() + "</td>");
                 writer.println("<td>" + user.getFlag() + "</td>");
                 writer.println("</tr>");
+                System.out.println("Test");
 
             });
             writer.println("</table");
