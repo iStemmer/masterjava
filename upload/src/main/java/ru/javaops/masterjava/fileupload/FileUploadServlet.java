@@ -1,4 +1,4 @@
-package fileupload;
+package ru.javaops.masterjava.fileupload;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
