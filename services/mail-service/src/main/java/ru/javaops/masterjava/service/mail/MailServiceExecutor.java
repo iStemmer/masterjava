@@ -9,7 +9,6 @@ public class MailServiceExecutor {
 
     private static final String INTERRUPTED_BY_FAULTS_NUMBER = "+++ Interrupted by faults number";
     private static final String INTERRUPTED_BY_TIMEOUT = "+++ Interrupted by timeout";
-    private static final String INTERRUPTED_EXCEPTION = "+++ InterruptedException";
 
     public GroupResult sendToList(final String template, final Set<String> emails) throws Exception {
         return new GroupResult(0, Collections.emptyList(), null);
